@@ -1416,14 +1416,8 @@ public class SpaceImpl extends AbstractService implements IRemoteSpace, IInterna
         _engine = new SpaceEngine(this);
 
         // reset space election state and check that lookup service is not down
-        if (_leaderSelector != null) {
-            if (_leaderSelector.isPrimary()) {
-                _logger.info("Space recovery failed (" + e.getMessage() + "), remaining primary");
-            } else {
-                _logger.info("Space recovery failed (" + e.getMessage() + "), selecting primary");
-                _leaderSelector.select();
-            }
-        }
+        if (_leaderSelector != null)
+            _leaderSelector.select();
 
         initReplicationStateBasedOnActiveElection();
     }
