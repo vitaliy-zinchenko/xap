@@ -30,7 +30,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * @author Niv Ingberg
  * @since 11.0
  */
-@SpaceQueryExtension(providerClass = LuceneSpatialQueryExtensionProvider.class)
+@SpaceQueryExtension(providerClass = LuceneSpatialQueryExtensionProvider.class, indexed = true)
 @Target(METHOD)
 @Retention(RUNTIME)
 public @interface SpaceSpatialIndexes {

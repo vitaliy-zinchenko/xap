@@ -16,6 +16,10 @@
 
 package com.gigaspaces.query.extension.metadata;
 
+import com.gigaspaces.internal.version.PlatformLogicalVersion;
+import com.gigaspaces.query.extension.QueryExtensionProvider;
+import com.gigaspaces.query.extension.SpaceQueryExtension;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -30,18 +34,46 @@ public class DefaultQueryExtensionPathInfo extends QueryExtensionPathInfo implem
     // serialVersionUID should never be changed.
     private static final long serialVersionUID = 1L;
 
+    private transient Class<? extends QueryExtensionProvider> providerClass;
+    private boolean indexed;
+
     /**
      * Required for Externalizable
      */
     public DefaultQueryExtensionPathInfo() {
+    }
+    public DefaultQueryExtensionPathInfo(SpaceQueryExtension queryExtension) {
+        this.indexed = queryExtension.indexed();
+        this.providerClass = queryExtension.providerClass();
+    }
 
+    @Override
+    public Class<? extends QueryExtensionProvider> getQueryExtensionProviderClass() {
+        return providerClass;
+    }
+
+    @Override
+    public boolean isIndexed() {
+        return indexed;
     }
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
+        final PlatformLogicalVersion version = PlatformLogicalVersion.getLogicalVersion();
+        if (version.greaterOrEquals(PlatformLogicalVersion.v12_1_0)) {
+            out.writeBoolean(indexed);
+        } else {
+
+        }
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        final PlatformLogicalVersion version = PlatformLogicalVersion.getLogicalVersion();
+        if (version.greaterOrEquals(PlatformLogicalVersion.v12_1_0)) {
+            indexed = in.readBoolean();
+        } else {
+            indexed = true;
+        }
     }
 }

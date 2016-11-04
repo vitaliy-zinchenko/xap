@@ -22,7 +22,6 @@ import com.gigaspaces.internal.metadata.SpaceTypeInfo;
 import com.gigaspaces.query.extension.QueryExtensionProvider;
 import com.gigaspaces.query.extension.SpaceQueryExtension;
 import com.gigaspaces.query.extension.impl.QueryExtensionProviderCache;
-import com.gigaspaces.query.extension.metadata.DefaultQueryExtensionPathInfo;
 import com.gigaspaces.query.extension.metadata.QueryExtensionPathInfo;
 import com.gigaspaces.query.extension.metadata.QueryExtensionPropertyInfo;
 import com.gigaspaces.query.extension.metadata.TypeQueryExtension;
@@ -35,6 +34,7 @@ import java.io.ObjectOutput;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @com.gigaspaces.api.InternalApi
@@ -63,18 +63,15 @@ public class TypeQueryExtensionsImpl implements TypeQueryExtensions, Externaliza
         }
     }
 
-    public void add(Class<? extends Annotation> annotationType, String path) {
-        if (!annotationType.isAnnotationPresent(SpaceQueryExtension.class))
-            throw new IllegalArgumentException("Annotation " + annotationType + " is not a space query extension annotation");
-        final SpaceQueryExtension spaceQueryExtension = annotationType.getAnnotation(SpaceQueryExtension.class);
-        final QueryExtensionProvider provider = QueryExtensionProviderCache.getByClass(spaceQueryExtension.providerClass());
-        add(provider.getNamespace(), path, new DefaultQueryExtensionPathInfo());
+    public void add(String path, QueryExtensionPathInfo pathInfo) {
+        final QueryExtensionProvider provider = QueryExtensionProviderCache.getByClass(pathInfo.getQueryExtensionProviderClass());
+        add(provider.getNamespace(), path, pathInfo);
     }
 
     @Override
     public boolean isIndexed(String namespace, String path) {
         final TypeQueryExtension typeQueryExtension = info.get(namespace);
-        return typeQueryExtension != null && typeQueryExtension.get(path) != null;
+        return typeQueryExtension != null && typeQueryExtension.isIndexed(path);
     }
 
     @Override

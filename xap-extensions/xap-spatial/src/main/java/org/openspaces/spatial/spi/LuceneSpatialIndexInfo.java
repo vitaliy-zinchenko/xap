@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package com.gigaspaces.query.extension.metadata;
+package org.openspaces.spatial.spi;
 
-import java.util.List;
-import java.util.Set;
+import com.gigaspaces.query.extension.QueryExtensionProvider;
+import com.gigaspaces.query.extension.metadata.QueryExtensionPathInfo;
 
 /**
  * @author Niv Ingberg
- * @since 11.0
+ * @since 12.1
  */
-public interface TypeQueryExtension {
-    List<QueryExtensionPathInfo> get(String path);
+public class LuceneSpatialIndexInfo extends QueryExtensionPathInfo {
+    @Override
+    public Class<? extends QueryExtensionProvider> getQueryExtensionProviderClass() {
+        return LuceneSpatialQueryExtensionProvider.class;
+    }
 
-    boolean isIndexed(String path);
-
-    Set<String> getPaths();
+    @Override
+    public boolean isIndexed() {
+        return true;
+    }
 }

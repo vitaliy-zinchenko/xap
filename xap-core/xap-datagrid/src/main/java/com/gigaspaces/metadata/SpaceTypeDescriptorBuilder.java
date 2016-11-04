@@ -35,6 +35,9 @@ import com.gigaspaces.metadata.index.SpaceIndex;
 import com.gigaspaces.metadata.index.SpaceIndexFactory;
 import com.gigaspaces.metadata.index.SpaceIndexType;
 import com.gigaspaces.metadata.index.SpacePropertyIndex;
+import com.gigaspaces.query.extension.SpaceQueryExtension;
+import com.gigaspaces.query.extension.metadata.DefaultQueryExtensionPathInfo;
+import com.gigaspaces.query.extension.metadata.QueryExtensionPathInfo;
 import com.gigaspaces.query.extension.metadata.impl.TypeQueryExtensionsImpl;
 import com.j_spaces.core.client.ExternalEntry;
 
@@ -632,9 +635,23 @@ public class SpaceTypeDescriptorBuilder {
      * @param queryExtensionAnnotation Query Extension annotation encapsulating mapping info
      */
     public SpaceTypeDescriptorBuilder addQueryExtensionInfo(String path, Class<? extends Annotation> queryExtensionAnnotation) {
+        if (!queryExtensionAnnotation.isAnnotationPresent(SpaceQueryExtension.class))
+            throw new IllegalArgumentException("Annotation " + queryExtensionAnnotation + " is not a space query extension annotation");
+        final SpaceQueryExtension spaceQueryExtension = queryExtensionAnnotation.getAnnotation(SpaceQueryExtension.class);
+
+        return addQueryExtensionInfo(path, new DefaultQueryExtensionPathInfo(spaceQueryExtension));
+    }
+
+    /**
+     * Adds a QueryExtension information for the specified path
+     *
+     * @param path                     Path to decorate
+     * @param pathInfo                  Query Extension annotation encapsulating mapping info
+     */
+    public SpaceTypeDescriptorBuilder addQueryExtensionInfo(String path, QueryExtensionPathInfo pathInfo) {
         if (_queryExtensionsInfo == null)
             _queryExtensionsInfo = new TypeQueryExtensionsImpl();
-        _queryExtensionsInfo.add(queryExtensionAnnotation, path);
+        _queryExtensionsInfo.add(path, pathInfo);
         return this;
     }
 

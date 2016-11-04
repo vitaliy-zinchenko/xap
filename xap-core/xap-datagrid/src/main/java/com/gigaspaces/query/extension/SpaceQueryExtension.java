@@ -30,5 +30,12 @@ import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SpaceQueryExtension {
     Class<? extends QueryExtensionProvider> providerClass();
+
+    /**
+     * Indicates if the underlying annotation denotes an index
+     * @since 12.1
+     * @return True if denotes an index, false otherwise
+     */
+    boolean indexed();
 }
 
