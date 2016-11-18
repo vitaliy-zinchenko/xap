@@ -20,11 +20,11 @@ import com.gigaspaces.internal.io.IOUtils;
 import com.gigaspaces.internal.metadata.SpacePropertyInfo;
 import com.gigaspaces.internal.metadata.SpaceTypeInfo;
 import com.gigaspaces.query.extension.QueryExtensionProvider;
+import com.gigaspaces.query.extension.QueryExtensionProvider.QueryExtensionPropertyInfo;
 import com.gigaspaces.query.extension.SpaceQueryExtension;
 import com.gigaspaces.query.extension.impl.QueryExtensionProviderCache;
-import com.gigaspaces.query.extension.metadata.DefaultQueryExtensionPathInfo;
+import com.gigaspaces.query.extension.metadata.QueryExtensionAnnotationInfo;
 import com.gigaspaces.query.extension.metadata.QueryExtensionPathInfo;
-import com.gigaspaces.query.extension.metadata.QueryExtensionPropertyInfo;
 import com.gigaspaces.query.extension.metadata.TypeQueryExtension;
 import com.gigaspaces.query.extension.metadata.TypeQueryExtensions;
 
@@ -54,8 +54,7 @@ public class TypeQueryExtensionsImpl implements TypeQueryExtensions, Externaliza
         for (SpacePropertyInfo property : typeInfo.getSpaceProperties()) {
             for (Annotation annotation : property.getGetterMethod().getDeclaredAnnotations())
                 if (annotation.annotationType().isAnnotationPresent(SpaceQueryExtension.class)) {
-                    final SpaceQueryExtension spaceQueryExtension = annotation.annotationType().getAnnotation(SpaceQueryExtension.class);
-                    final QueryExtensionProvider provider = QueryExtensionProviderCache.getByClass(spaceQueryExtension.providerClass());
+                    final QueryExtensionProvider provider = extractQueryExtensionProvider(annotation);
                     final QueryExtensionPropertyInfo propertyInfo = provider.getPropertyExtensionInfo(property.getName(), annotation);
                     for (String path : propertyInfo.getPaths())
                         add(provider.getNamespace(), path, propertyInfo.getPathInfo(path));
@@ -63,18 +62,49 @@ public class TypeQueryExtensionsImpl implements TypeQueryExtensions, Externaliza
         }
     }
 
-    public void add(Class<? extends Annotation> annotationType, String path) {
+    private void add(String namespace, String path, QueryExtensionPathInfo pathInfo) {
+        for(QueryExtensionAnnotationInfo annotationInfo: pathInfo.getAnnotations()) {
+            add(namespace, path, annotationInfo);
+        }
+    }
+
+    private QueryExtensionProvider extractQueryExtensionProvider(Annotation annotation) {
+        final SpaceQueryExtension spaceQueryExtension = annotation.annotationType().getAnnotation(SpaceQueryExtension.class);
+        return QueryExtensionProviderCache.getByClass(spaceQueryExtension.providerClass());
+    }
+
+    public void add(String path, Class<? extends Annotation> annotationType) {
+        add(path, new DefaultQueryExtensionAnnotationInfo(annotationType));
+    }
+
+    public void add(String path, QueryExtensionAnnotationInfo annotation) {
+        String namespace = getNamespace(annotation.getType());
+        add(namespace, path, annotation);
+    }
+
+    private String getNamespace(Class<? extends Annotation> annotationType) {
         if (!annotationType.isAnnotationPresent(SpaceQueryExtension.class))
             throw new IllegalArgumentException("Annotation " + annotationType + " is not a space query extension annotation");
         final SpaceQueryExtension spaceQueryExtension = annotationType.getAnnotation(SpaceQueryExtension.class);
-        final QueryExtensionProvider provider = QueryExtensionProviderCache.getByClass(spaceQueryExtension.providerClass());
-        add(provider.getNamespace(), path, new DefaultQueryExtensionPathInfo());
+        return QueryExtensionProviderCache.getByClass(spaceQueryExtension.providerClass()).getNamespace();
     }
 
     @Override
     public boolean isIndexed(String namespace, String path) {
         final TypeQueryExtension typeQueryExtension = info.get(namespace);
-        return typeQueryExtension != null && typeQueryExtension.get(path) != null;
+        if(typeQueryExtension == null) {
+            return false;
+        }
+        QueryExtensionPathInfo pathInfo = typeQueryExtension.get(path);
+        if(pathInfo == null) {
+            return false;
+        }
+        for(QueryExtensionAnnotationInfo annotationInfo: pathInfo.getAnnotations()) {
+            if(annotationInfo.isIndexed()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -88,10 +118,18 @@ public class TypeQueryExtensionsImpl implements TypeQueryExtensions, Externaliza
     }
 
 
-    private void add(String namespace, String path, QueryExtensionPathInfo queryExtensionPathInfo) {
-        if (!info.containsKey(namespace))
-            info.put(namespace, new TypeQueryExtensionImpl());
-        info.get(namespace).add(path, queryExtensionPathInfo);
+    private void add(String namespace, String path, QueryExtensionAnnotationInfo annotationInfo) {
+        TypeQueryExtensionImpl typeQueryExtension = getOrCreateTypeQueryExtension(namespace);
+        typeQueryExtension.addAnnotationByPath(path, annotationInfo);
+    }
+
+    private TypeQueryExtensionImpl getOrCreateTypeQueryExtension(String namespace) {
+        TypeQueryExtensionImpl typeQueryExtension = info.get(namespace);
+        if (typeQueryExtension == null) {
+            typeQueryExtension = new TypeQueryExtensionImpl();
+            info.put(namespace, typeQueryExtension);
+        }
+        return typeQueryExtension;
     }
 
     @Override
