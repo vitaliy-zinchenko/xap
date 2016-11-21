@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package com.gigaspaces.query.extension.metadata;
+package org.openspaces.spatial.lucene.common;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import com.gigaspaces.query.extension.QueryExtensionProvider;
+
+import java.util.Properties;
 
 /**
  * @author Niv Ingberg
  * @since 11.0
  */
-@com.gigaspaces.api.InternalApi
-public class QueryExtensionPropertyInfo {
-    private final Map<String, QueryExtensionPathInfo> pathsInfo = new HashMap<String, QueryExtensionPathInfo>();
+public abstract class BaseLuceneQueryExtensionProvider extends QueryExtensionProvider {
 
-    public Set<String> getPaths() {
-        return pathsInfo.keySet();
+    protected final Properties _customProperties;
+
+    public BaseLuceneQueryExtensionProvider(Properties customProperties) {
+        this._customProperties = customProperties;
     }
 
-    public QueryExtensionPathInfo getPathInfo(String path) {
-        return pathsInfo.get(path);
+    public String getCustomProperty(String key, String defaultValue) {
+        return _customProperties.getProperty(key, defaultValue);
     }
 
-    public void addPathInfo(String path, QueryExtensionPathInfo queryExtensionPathInfo) {
-        pathsInfo.put(path, queryExtensionPathInfo);
-    }
 }

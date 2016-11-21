@@ -9,7 +9,7 @@
         <relativePath>../../</relativePath>
     </parent>
 
-    <artifactId>xap-spatial</artifactId>
+    <artifactId>xap-full-text-search</artifactId>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,9 +18,15 @@
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>org.gigaspaces</groupId>
             <artifactId>xap-openspaces</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gigaspaces</groupId>
+            <artifactId>xap-lucene-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
@@ -39,11 +45,6 @@
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-spatial</artifactId>
-            <version>${luceneVersion}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queries</artifactId>
             <version>${luceneVersion}</version>
         </dependency>
@@ -54,33 +55,9 @@
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-misc</artifactId>
+            <artifactId>lucene-memory</artifactId>
             <version>${luceneVersion}</version>
         </dependency>
-        <dependency>
-            <groupId>org.gigaspaces</groupId>
-            <artifactId>xap-lucene-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.vividsolutions</groupId>
-            <artifactId>jts</artifactId>
-            <version>${jtsVersion}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.spatial4j</groupId>
-            <artifactId>spatial4j</artifactId>
-            <version>0.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.noggit</groupId>
-            <artifactId>noggit</artifactId>
-            <version>0.7</version>
-        </dependency>
-
 
         <dependency>
             <groupId>junit</groupId>
@@ -91,7 +68,7 @@
     </dependencies>
 
     <build>
-        <finalName>xap-spatial</finalName>
+        <finalName>xap-full-text-search</finalName>
         <extensions>
             <extension>
                 <groupId>org.kuali.maven.wagons</groupId>
