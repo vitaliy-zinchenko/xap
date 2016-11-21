@@ -19,6 +19,8 @@ package com.gigaspaces.query.extension.metadata;
 import java.util.Set;
 
 /**
+ * Represents type and pathes specific query extension meta information.
+ *
  * @author Niv Ingberg
  * @since 11.0
  */

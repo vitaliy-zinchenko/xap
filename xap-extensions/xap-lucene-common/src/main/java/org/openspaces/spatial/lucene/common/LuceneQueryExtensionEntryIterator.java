@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.openspaces.spatial.spi;
+package org.openspaces.spatial.lucene.common;
 
 import com.gigaspaces.SpaceRuntimeException;
 import com.gigaspaces.query.extension.QueryExtensionEntryIterator;
@@ -30,13 +30,13 @@ import java.io.IOException;
  * @author yechielf
  * @since 11.0
  */
-public class LuceneSpatialQueryExtensionEntryIterator extends QueryExtensionEntryIterator {
+public class LuceneQueryExtensionEntryIterator extends QueryExtensionEntryIterator {
     private final ScoreDoc[] scores;
     private final IndexSearcher indexSearcher;
     private final DirectoryReader directoryReader;
     private int position;
 
-    public LuceneSpatialQueryExtensionEntryIterator(ScoreDoc[] scores, IndexSearcher indexSearcher, DirectoryReader directoryReader) {
+    public LuceneQueryExtensionEntryIterator(ScoreDoc[] scores, IndexSearcher indexSearcher, DirectoryReader directoryReader) {
         this.scores = scores;
         this.indexSearcher = indexSearcher;
         this.directoryReader = directoryReader;
@@ -56,7 +56,7 @@ public class LuceneSpatialQueryExtensionEntryIterator extends QueryExtensionEntr
     public String nextUid() {
         try {
             Document d = indexSearcher.doc(scores[position++].doc);
-            return d.get(LuceneSpatialQueryExtensionManager.XAP_ID);
+            return d.get(BaseLuceneQueryExtensionManager.XAP_ID);
         } catch (IOException e) {
             throw new SpaceRuntimeException("Failed to get next item", e);
         }

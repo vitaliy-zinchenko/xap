@@ -16,13 +16,17 @@
 
 package com.gigaspaces.query.extension.metadata;
 
-import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.util.Collection;
 
 /**
+ * Represents path's annotation
+ *
  * @author Niv Ingberg
  * @since 11.0
  */
-public abstract class QueryExtensionPathInfo implements Serializable {
-    // serialVersionUID should never be changed.
-    private static final long serialVersionUID = 1L;
+public interface QueryExtensionPathInfo {
+
+    Collection<QueryExtensionAnnotationInfo> getAnnotations();
+
 }
