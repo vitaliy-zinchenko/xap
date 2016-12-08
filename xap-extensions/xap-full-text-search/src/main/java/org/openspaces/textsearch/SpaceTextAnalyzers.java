@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-package com.gigaspaces.query.extension.metadata;
+package org.openspaces.textsearch;
 
-import java.util.List;
-import java.util.Set;
+import com.gigaspaces.query.extension.SpaceQueryExtension;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Represents path and associated with it {@link QueryExtensionPathInfo}.
- *
- * @author Niv Ingberg
- * @since 11.0
+ * @author Vitaliy_Zinchenko
+ * @since 12.1
  */
-public interface TypeQueryExtension {
-    List<QueryExtensionPathInfo> get(String path);
+@SpaceQueryExtension(providerClass = LuceneTextSearchQueryExtensionProvider.class)
+@Target({METHOD, TYPE})
+@Retention(RUNTIME)
+public @interface SpaceTextAnalyzers {
 
-    Set<String> getPaths();
+    SpaceTextAnalyzer[] value();
 
-    boolean isIndexed(String path);
 }

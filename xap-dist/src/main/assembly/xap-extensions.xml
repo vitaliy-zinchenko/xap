@@ -151,6 +151,28 @@
             </includes>
         </dependencySet>
 
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>product/lib/optional/full-text-search</outputDirectory>
+            <includes>
+                <include>org.gigaspaces:xap-full-text-search</include>
+            </includes>
+            <outputFileNameMapping>${artifact.artifactId}.${artifact.extension}</outputFileNameMapping>
+        </dependencySet>
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>product/lib/optional/full-text-search</outputDirectory>
+            <includes>
+                <include>org.apache.lucene:lucene-core</include>
+                <include>org.apache.lucene:lucene-analyzers-common</include>
+                <include>org.apache.lucene:lucene-queryparser</include>
+                <include>org.apache.lucene:lucene-queries</include>
+                <include>org.apache.lucene:lucene-sandbox</include>
+                <include>org.apache.lucene:lucene-misc</include>
+                <include>org.apache.lucene:lucene-memory</include>
+            </includes>
+        </dependencySet>
+
     </dependencySets>
 
     <fileSets>

@@ -31,4 +31,5 @@ public abstract class QueryExtensionProvider {
     public abstract QueryExtensionManager createManager(QueryExtensionRuntimeInfo info);
 
     public abstract QueryExtensionPropertyInfo getPropertyExtensionInfo(String property, Annotation annotation);
+
 }

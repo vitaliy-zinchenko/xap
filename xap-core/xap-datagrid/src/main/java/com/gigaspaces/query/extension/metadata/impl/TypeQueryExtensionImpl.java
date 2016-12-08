@@ -17,7 +17,8 @@
 package com.gigaspaces.query.extension.metadata.impl;
 
 import com.gigaspaces.internal.io.IOUtils;
-import com.gigaspaces.query.extension.QueryExtensionProvider;
+import com.gigaspaces.internal.version.PlatformLogicalVersion;
+import com.gigaspaces.lrmi.LRMIInvocationContext;
 import com.gigaspaces.query.extension.metadata.QueryExtensionPathInfo;
 import com.gigaspaces.query.extension.metadata.TypeQueryExtension;
 
@@ -25,7 +26,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,8 +38,7 @@ public class TypeQueryExtensionImpl implements TypeQueryExtension, Externalizabl
     // serialVersionUID should never be changed.
     private static final long serialVersionUID = 1L;
 
-    private QueryExtensionProvider queryExtensionProvider;
-    private final Map<String, QueryExtensionPathInfo> propertiesInfo = new HashMap<String, QueryExtensionPathInfo>();
+    private final Map<String, List<QueryExtensionPathInfo>> propertiesInfo = new HashMap<String, List<QueryExtensionPathInfo>>();
 
     /**
      * Required for Externalizable
@@ -44,11 +47,14 @@ public class TypeQueryExtensionImpl implements TypeQueryExtension, Externalizabl
     }
 
     public void add(String path, QueryExtensionPathInfo queryExtensionPathInfo) {
-        this.propertiesInfo.put(path, queryExtensionPathInfo);
+        if(!propertiesInfo.containsKey(path)) {
+            propertiesInfo.put(path, new ArrayList<QueryExtensionPathInfo>());
+        }
+        this.propertiesInfo.get(path).add(queryExtensionPathInfo);
     }
 
     @Override
-    public QueryExtensionPathInfo get(String path) {
+    public List<QueryExtensionPathInfo> get(String path) {
         return this.propertiesInfo.get(path);
     }
 
@@ -58,21 +64,70 @@ public class TypeQueryExtensionImpl implements TypeQueryExtension, Externalizabl
     }
 
     @Override
+    public boolean isIndexed(String path) {
+        List<QueryExtensionPathInfo> pathInfos = propertiesInfo.get(path);
+        if(pathInfos == null) {
+            return false;
+        }
+        for (QueryExtensionPathInfo pathInfo: pathInfos) {
+            if(pathInfo.isIndexed()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
-        out.writeInt(propertiesInfo.size());
-        for (Map.Entry<String, QueryExtensionPathInfo> entry : propertiesInfo.entrySet()) {
-            IOUtils.writeString(out, entry.getKey());
-            IOUtils.writeObject(out, entry.getValue());
+        if (LRMIInvocationContext.getEndpointLogicalVersion().greaterOrEquals(PlatformLogicalVersion.v12_1_0)) {
+            writeExternal_v12_1(out);
+        } else {
+            writeExternal_v12_0(out);
         }
     }
 
+    private void writeExternal_v12_1(ObjectOutput out) throws IOException {
+        out.writeInt(propertiesInfo.size());
+        for (Map.Entry<String, List<QueryExtensionPathInfo>> entry : propertiesInfo.entrySet()) {
+            IOUtils.writeString(out, entry.getKey());
+            IOUtils.writeList(out, entry.getValue());
+        }
+    }
+
+    private void writeExternal_v12_0(ObjectOutput out) throws IOException {
+        out.writeInt(propertiesInfo.size());
+        for (Map.Entry<String, List<QueryExtensionPathInfo>> entry : propertiesInfo.entrySet()) {
+            IOUtils.writeString(out, entry.getKey());
+            IOUtils.writeObject(out, entry.getValue().get(0));
+        }
+    }
+
+
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+        if (LRMIInvocationContext.getEndpointLogicalVersion().greaterOrEquals(PlatformLogicalVersion.v12_1_0)) {
+            readExternal_v12_1(in);
+        } else {
+            readExternal_v12_0(in);
+        }
+    }
+
+    private void readExternal_v12_1(ObjectInput in) throws IOException, ClassNotFoundException {
+        int size = in.readInt();
+        for (int i = 0; i < size; i++) {
+            String key = IOUtils.readString(in);
+            List<QueryExtensionPathInfo> value = IOUtils.readList(in);
+            propertiesInfo.put(key, value);
+        }
+    }
+
+    private void readExternal_v12_0(ObjectInput in) throws IOException, ClassNotFoundException {
         int size = in.readInt();
         for (int i = 0; i < size; i++) {
             String key = IOUtils.readString(in);
             QueryExtensionPathInfo value = IOUtils.readObject(in);
-            propertiesInfo.put(key, value);
+            propertiesInfo.put(key, Collections.singletonList(value));
         }
     }
 }

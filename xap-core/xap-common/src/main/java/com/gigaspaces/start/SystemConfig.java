@@ -319,6 +319,7 @@ public class SystemConfig {
         classpathBuilder.append(gsLibOptional + "metrics");// Metrics support
         classpathBuilder.append(gsLibOptional + "httpsession");// xap-http-session support
         classpathBuilder.append(gsLibOptional + "spatial"); // Spatial libraries
+        classpathBuilder.append(gsLibOptional + "full-text-search"); // Full text search libraries
         classpathBuilder.append(gsLibOptional + "jpa");// JPA support
         classpathBuilder.append(gsLibPlatform + "commons"); // Apache Commons libraries
         classpathBuilder.append(gsLibOptional + "groovy"); // groovy support

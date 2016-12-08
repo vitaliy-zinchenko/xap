@@ -492,6 +492,7 @@ public class CacheManager extends AbstractCacheManager
         }
         // Load predefined query extension managers if not configured:
         addPredefinedIfAbsent(queryExtensions, info, "spatial", "org.openspaces.spatial.spi.LuceneSpatialQueryExtensionProvider");
+        addPredefinedIfAbsent(queryExtensions, info, "text", "org.openspaces.textsearch.LuceneTextSearchQueryExtensionProvider");
         return queryExtensions;
     }
 

@@ -54,8 +54,7 @@ public class TypeQueryExtensionsImpl implements TypeQueryExtensions, Externaliza
         for (SpacePropertyInfo property : typeInfo.getSpaceProperties()) {
             for (Annotation annotation : property.getGetterMethod().getDeclaredAnnotations())
                 if (annotation.annotationType().isAnnotationPresent(SpaceQueryExtension.class)) {
-                    final SpaceQueryExtension spaceQueryExtension = annotation.annotationType().getAnnotation(SpaceQueryExtension.class);
-                    final QueryExtensionProvider provider = QueryExtensionProviderCache.getByClass(spaceQueryExtension.providerClass());
+                    final QueryExtensionProvider provider = extractQueryExtensionProvider(annotation);
                     final QueryExtensionPropertyInfo propertyInfo = provider.getPropertyExtensionInfo(property.getName(), annotation);
                     for (String path : propertyInfo.getPaths())
                         add(provider.getNamespace(), path, propertyInfo.getPathInfo(path));
@@ -63,18 +62,37 @@ public class TypeQueryExtensionsImpl implements TypeQueryExtensions, Externaliza
         }
     }
 
-    public void add(Class<? extends Annotation> annotationType, String path) {
+    private QueryExtensionProvider extractQueryExtensionProvider(Annotation annotation) {
+        final SpaceQueryExtension spaceQueryExtension = annotation.annotationType().getAnnotation(SpaceQueryExtension.class);
+        return QueryExtensionProviderCache.getByClass(spaceQueryExtension.providerClass());
+    }
+
+    public void add(String path, Class<? extends Annotation> annotationType) {
+        String namespace = getNamespace(annotationType);
+        add(namespace, path, new DefaultQueryExtensionPathInfo());
+    }
+
+    public void add(String path, QueryExtensionPathInfo queryExtensionPathInfo) {
+        String namespace = QueryExtensionProviderCache.getByClass(queryExtensionPathInfo.getQueryExtensionProviderClass()).getNamespace();
+        add(namespace, path, queryExtensionPathInfo);
+    }
+
+    private void add(String namespace, String path, QueryExtensionPathInfo queryExtensionPathInfo) {
+        TypeQueryExtensionImpl typeQueryExtension = getOrCreateTypeQueryExtension(namespace);
+        typeQueryExtension.add(path, queryExtensionPathInfo);
+    }
+
+    private String getNamespace(Class<? extends Annotation> annotationType) {
         if (!annotationType.isAnnotationPresent(SpaceQueryExtension.class))
             throw new IllegalArgumentException("Annotation " + annotationType + " is not a space query extension annotation");
         final SpaceQueryExtension spaceQueryExtension = annotationType.getAnnotation(SpaceQueryExtension.class);
-        final QueryExtensionProvider provider = QueryExtensionProviderCache.getByClass(spaceQueryExtension.providerClass());
-        add(provider.getNamespace(), path, new DefaultQueryExtensionPathInfo());
+        return QueryExtensionProviderCache.getByClass(spaceQueryExtension.providerClass()).getNamespace();
     }
 
     @Override
     public boolean isIndexed(String namespace, String path) {
         final TypeQueryExtension typeQueryExtension = info.get(namespace);
-        return typeQueryExtension != null && typeQueryExtension.get(path) != null;
+        return typeQueryExtension != null && typeQueryExtension.isIndexed(path);
     }
 
     @Override
@@ -87,11 +105,13 @@ public class TypeQueryExtensionsImpl implements TypeQueryExtensions, Externaliza
         return info.get(namespace);
     }
 
-
-    private void add(String namespace, String path, QueryExtensionPathInfo queryExtensionPathInfo) {
-        if (!info.containsKey(namespace))
-            info.put(namespace, new TypeQueryExtensionImpl());
-        info.get(namespace).add(path, queryExtensionPathInfo);
+    private TypeQueryExtensionImpl getOrCreateTypeQueryExtension(String namespace) {
+        TypeQueryExtensionImpl typeQueryExtension = info.get(namespace);
+        if (typeQueryExtension == null) {
+            typeQueryExtension = new TypeQueryExtensionImpl();
+            info.put(namespace, typeQueryExtension);
+        }
+        return typeQueryExtension;
     }
 
     @Override

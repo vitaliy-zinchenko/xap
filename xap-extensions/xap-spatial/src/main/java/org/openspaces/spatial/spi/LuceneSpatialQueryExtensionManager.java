@@ -152,11 +152,11 @@ public class LuceneSpatialQueryExtensionManager extends QueryExtensionManager {
     }
 
     @Override
-    public boolean accept(String operationName, Object leftOperand, Object rightOperand) {
+    public boolean accept(String typeName, String path, String operation, Object leftOperand, Object rightOperand) {
         if (_logger.isLoggable(Level.FINE))
-            _logger.log(Level.FINE, "filter [operation=" + operationName + ", leftOperand=" + leftOperand + ", rightOperand=" + rightOperand + "]");
+            _logger.log(Level.FINE, "filter [operation=" + operation + ", leftOperand=" + leftOperand + ", rightOperand=" + rightOperand + "]");
 
-        return toOperation(operationName).evaluate(toShape(leftOperand), toShape(rightOperand));
+        return toOperation(operation).evaluate(toShape(leftOperand), toShape(rightOperand));
     }
 
     protected Document createDocumentIfNeeded(LuceneSpatialTypeIndex luceneHolder, SpaceServerEntry entry) {
